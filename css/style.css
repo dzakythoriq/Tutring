@@ -1,0 +1,180 @@
+/* Custom styles for Tutring */
+
+/* General Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+    background-color: #f8f9fa;
+}
+
+.container {
+    max-width: 1200px;
+}
+
+/* Header Styles */
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.navbar-dark .navbar-nav .nav-link:hover {
+    color: #fff;
+}
+
+/* Card Styles */
+.card {
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    margin-bottom: 20px;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card-img-top {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.card-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+/* Button Styles */
+.btn-primary {
+    background-color: #4e73df;
+    border-color: #4e73df;
+}
+
+.btn-primary:hover {
+    background-color: #2e59d9;
+    border-color: #2653d4;
+}
+
+.btn-success {
+    background-color: #1cc88a;
+    border-color: #1cc88a;
+}
+
+.btn-success:hover {
+    background-color: #17a673;
+    border-color: #169b6b;
+}
+
+/* Form Styles */
+.form-control:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
+}
+
+.form-label {
+    font-weight: 500;
+}
+
+/* Hero Section */
+.hero {
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    color: white;
+    padding: 80px 0;
+    margin-bottom: 30px;
+    border-radius: 15px;
+}
+
+.hero h1 {
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+/* Feature Icons */
+.feature-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    color: #fff;
+    border-radius: 50%;
+    background-color: #4e73df;
+}
+
+/* Tutor Cards */
+.tutor-card {
+    height: 100%;
+}
+
+.tutor-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.tutor-rating {
+    color: #ffc107;
+}
+
+/* Schedule Card */
+.schedule-card {
+    border-left: 4px solid #4e73df;
+}
+
+.schedule-card.booked {
+    border-left-color: #1cc88a;
+}
+
+/* Status Badges */
+.badge-pending {
+    background-color: #f6c23e;
+}
+
+.badge-confirmed {
+    background-color: #1cc88a;
+}
+
+.badge-cancelled {
+    background-color: #e74a3b;
+}
+
+/* Login/Register Forms */
+.auth-card {
+    max-width: 450px;
+    margin: 2rem auto;
+}
+
+/* Dashboard Stats */
+.stat-card {
+    border-left: 4px solid;
+    border-radius: 6px;
+}
+
+.stat-card-primary {
+    border-left-color: #4e73df;
+}
+
+.stat-card-success {
+    border-left-color: #1cc88a;
+}
+
+.stat-card-info {
+    border-left-color: #36b9cc;
+}
+
+.stat-card-warning {
+    border-left-color: #f6c23e;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .hero {
+        padding: 40px 0;
+    }
+}
