@@ -1,8 +1,12 @@
 <?php
-require_once 'includes/config.php';
-require_once 'includes/functions.php';
-require_once 'models/tutor.model.php';
-require_once 'models/schedule.model.php';
+if (!defined('ROOT_PATH')) {
+    define('ROOT_PATH', dirname(__DIR__) . '/');
+}
+
+require_once ROOT_PATH . 'configs/config.php';
+require_once ROOT_PATH . 'configs/functions.php';
+require_once ROOT_PATH . 'models/tutor.model.php';
+require_once ROOT_PATH . 'models/schedule.model.php';
 
 // Initialize models
 $tutorModel = new Tutor($conn);
@@ -20,7 +24,7 @@ if ($viewTutor) {
     
     if (!$tutor) {
         setMessage('Tutor not found', 'error');
-        redirect('search.php');
+        redirect('main_pages/search.php');
     }
     
     // Get tutor's available schedules (future dates only)
@@ -45,7 +49,7 @@ if ($viewTutor) {
 }
 
 // Include header
-include_once 'views/header.php';
+include_once ROOT_PATH . 'views/header.php';
 ?>
 
 <div class="container py-4">
@@ -345,5 +349,5 @@ include_once 'views/header.php';
 
 <?php
 // Include footer
-include_once 'views/footer.php';
+include_once ROOT_PATH . 'views/footer.php';
 ?>

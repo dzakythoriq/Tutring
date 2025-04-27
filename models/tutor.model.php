@@ -1,5 +1,9 @@
 <?php
-require_once 'includes/config.php';
+if (!defined('ROOT_PATH')) {
+    define('ROOT_PATH', dirname(__DIR__) . '/');
+}
+
+require_once ROOT_PATH . 'configs/config.php';
 
 class Tutor {
     private $conn;
@@ -183,3 +187,4 @@ class Tutor {
         return $row['total'];
     }
 }
+?>

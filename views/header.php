@@ -1,7 +1,11 @@
 <?php
-require_once 'includes/config.php';
-require_once 'includes/functions.php';
-require_once 'includes/session.php';
+if (!defined('ROOT_PATH')) {
+    define('ROOT_PATH', dirname(__DIR__) . '/');
+}
+
+require_once ROOT_PATH . 'configs/config.php';
+require_once ROOT_PATH . 'configs/functions.php';
+require_once ROOT_PATH . 'configs/session.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -14,7 +18,7 @@ require_once 'includes/session.php';
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/assets/css/style.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/css/style.css">
 </head>
 <body>
     <!-- Navigation -->
@@ -32,16 +36,16 @@ require_once 'includes/session.php';
                         <a class="nav-link" href="<?php echo BASE_URL; ?>/index.php">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?php echo BASE_URL; ?>/search.php">Find Tutors</a>
+                        <a class="nav-link" href="<?php echo BASE_URL; ?>/main_pages/search.php">Find Tutors</a>
                     </li>
                     <?php if (isLoggedIn()): ?>
                         <?php if (isStudent()): ?>
                             <li class="nav-item">
-                                <a class="nav-link" href="<?php echo BASE_URL; ?>/dashboard.php">My Bookings</a>
+                                <a class="nav-link" href="<?php echo BASE_URL; ?>/main_pages/dashboard.php">My Bookings</a>
                             </li>
                         <?php elseif (isTutor()): ?>
                             <li class="nav-item">
-                                <a class="nav-link" href="<?php echo BASE_URL; ?>/dashboard.php">My Schedule</a>
+                                <a class="nav-link" href="<?php echo BASE_URL; ?>/main_pages/dashboard.php">My Schedule</a>
                             </li>
                         <?php endif; ?>
                     <?php endif; ?>
@@ -53,17 +57,17 @@ require_once 'includes/session.php';
                                 <i class="fas fa-user-circle"></i> <?php echo $_SESSION['name']; ?>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/profile.php">Profile</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/main_pages/profile.php">Profile</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/logout.php">Logout</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/main_pages/logout.php">Logout</a></li>
                             </ul>
                         </li>
                     <?php else: ?>
                         <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>/login.php">Login</a>
+                            <a class="nav-link" href="<?php echo BASE_URL; ?>/main_pages/login.php">Login</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="<?php echo BASE_URL; ?>/register.php">Register</a>
+                            <a class="nav-link" href="<?php echo BASE_URL; ?>/main_pages/register.php">Register</a>
                         </li>
                     <?php endif; ?>
                 </ul>

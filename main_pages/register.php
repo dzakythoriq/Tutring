@@ -1,11 +1,15 @@
 <?php
-require_once 'includes/config.php';
-require_once 'includes/functions.php';
-require_once 'includes/auth.php';
+if (!defined('ROOT_PATH')) {
+    define('ROOT_PATH', dirname(__DIR__) . '/');
+}
+
+require_once ROOT_PATH . 'configs/config.php';
+require_once ROOT_PATH . 'configs/functions.php';
+require_once ROOT_PATH . 'configs/auth.php';
 
 // Check if user is already logged in
 if (isLoggedIn()) {
-    redirect('dashboard.php');
+    redirect('main_pages/dashboard.php');
 }
 
 // Set default role or get from URL parameter
@@ -52,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($result['status']) {
             setMessage($result['message'], 'success');
-            redirect('login.php');
+            redirect('main_pages/login.php');
         } else {
             setMessage($result['message'], 'error');
         }
@@ -65,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Include header
-include_once 'views/header.php';
+include_once ROOT_PATH . 'views/header.php';
 ?>
 
 <div class="container py-5">
@@ -86,7 +90,7 @@ include_once 'views/header.php';
                     
                     <div class="tab-content" id="pills-tabContent">
                         <div class="tab-pane fade <?= $role === 'student' ? 'show active' : '' ?>" id="student" role="tabpanel">
-                            <form action="register.php" method="post">
+                            <form action="<?php echo BASE_URL; ?>/main_pages/register.php" method="post">
                                 <input type="hidden" name="role" value="student">
                                 
                                 <div class="mb-3">
@@ -115,7 +119,7 @@ include_once 'views/header.php';
                         </div>
                         
                         <div class="tab-pane fade <?= $role === 'tutor' ? 'show active' : '' ?>" id="tutor" role="tabpanel">
-                            <form action="register.php" method="post">
+                            <form action="<?php echo BASE_URL; ?>/main_pages/register.php" method="post">
                                 <input type="hidden" name="role" value="tutor">
                                 
                                 <div class="mb-3">
@@ -145,7 +149,7 @@ include_once 'views/header.php';
                     </div>
                     
                     <div class="text-center mt-3">
-                        <p>Already have an account? <a href="login.php">Login here</a></p>
+                        <p>Already have an account? <a href="<?php echo BASE_URL; ?>/main_pages/login.php">Login here</a></p>
                     </div>
                 </div>
             </div>
@@ -160,16 +164,16 @@ include_once 'views/header.php';
         const tutorTab = document.getElementById('tutor-tab');
         
         studentTab.addEventListener('click', function() {
-            history.replaceState(null, '', 'register.php?role=student');
+            history.replaceState(null, '', '<?php echo BASE_URL; ?>/main_pages/register.php?role=student');
         });
         
         tutorTab.addEventListener('click', function() {
-            history.replaceState(null, '', 'register.php?role=tutor');
+            history.replaceState(null, '', '<?php echo BASE_URL; ?>/main_pages/register.php?role=tutor');
         });
     });
 </script>
 
 <?php
 // Include footer
-include_once 'views/footer.php';
+include_once ROOT_PATH . 'views/footer.php';
 ?>

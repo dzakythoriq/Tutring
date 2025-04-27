@@ -1,11 +1,15 @@
 <?php
-require_once 'includes/config.php';
-require_once 'includes/functions.php';
-require_once 'includes/auth.php';
+if (!defined('ROOT_PATH')) {
+    define('ROOT_PATH', dirname(__DIR__) . '/');
+}
+
+require_once ROOT_PATH . 'configs/config.php';
+require_once ROOT_PATH . 'configs/functions.php';
+require_once ROOT_PATH . 'configs/auth.php';
 
 // Check if user is already logged in
 if (isLoggedIn()) {
-    redirect('dashboard.php');
+    redirect('main_pages/dashboard.php');
 }
 
 // Check for timeout
@@ -24,9 +28,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($result['status']) {
         // Redirect based on role
         if (hasRole('tutor')) {
-            redirect('dashboard.php');
+            redirect('main_pages/dashboard.php');
         } else {
-            redirect('dashboard.php');
+            redirect('main_pages/dashboard.php');
         }
     } else {
         setMessage($result['message'], 'error');
@@ -34,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Include header
-include_once 'views/header.php';
+include_once ROOT_PATH . 'views/header.php';
 ?>
 
 <div class="container py-5">
@@ -44,7 +48,7 @@ include_once 'views/header.php';
                 <div class="card-body p-4">
                     <h2 class="text-center mb-4">Login to Your Account</h2>
                     
-                    <form action="login.php" method="post">
+                    <form action="<?php echo BASE_URL; ?>/main_pages/login.php" method="post">
                         <div class="mb-3">
                             <label for="email" class="form-label">Email Address</label>
                             <input type="email" class="form-control" id="email" name="email" required>
@@ -59,7 +63,7 @@ include_once 'views/header.php';
                     </form>
                     
                     <div class="text-center mt-3">
-                        <p>Don't have an account? <a href="register.php">Register here</a></p>
+                        <p>Don't have an account? <a href="<?php echo BASE_URL; ?>/main_pages/register.php">Register here</a></p>
                     </div>
                 </div>
             </div>
@@ -69,5 +73,5 @@ include_once 'views/header.php';
 
 <?php
 // Include footer
-include_once 'views/footer.php';
+include_once ROOT_PATH . 'views/footer.php';
 ?>

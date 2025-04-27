@@ -1,5 +1,9 @@
 <?php
-require_once 'config.php';
+if (!defined('ROOT_PATH')) {
+    define('ROOT_PATH', dirname(__DIR__) . '/');
+}
+
+require_once ROOT_PATH . 'configs/config.php';
 
 /**
  * Sanitize user input
@@ -23,7 +27,12 @@ function sanitize($data) {
  * @return void
  */
 function redirect($location) {
-    header("Location: " . BASE_URL . "/" . $location);
+    // If the location doesn't start with http or https (not an absolute URL)
+    if (!preg_match('/^https?:\/\//', $location)) {
+        header("Location: " . BASE_URL . "/" . $location);
+    } else {
+        header("Location: " . $location);
+    }
     exit;
 }
 

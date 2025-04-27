@@ -1,10 +1,14 @@
 <?php
-require_once 'includes/config.php';
-require_once 'includes/functions.php';
-require_once 'includes/auth.php';
-require_once 'includes/validation.php';
-require_once 'models/schedule.model.php';
-require_once 'models/tutor.model.php';
+if (!defined('ROOT_PATH')) {
+    define('ROOT_PATH', dirname(__DIR__) . '/');
+}
+
+require_once ROOT_PATH . 'configs/config.php';
+require_once ROOT_PATH . 'configs/functions.php';
+require_once ROOT_PATH . 'configs/auth.php';
+require_once ROOT_PATH . 'configs/validation.php';
+require_once ROOT_PATH . 'models/schedule.model.php';
+require_once ROOT_PATH . 'models/tutor.model.php';
 
 // Require login and tutor role
 requireLogin('tutor');
@@ -12,10 +16,6 @@ requireLogin('tutor');
 // Initialize models
 $scheduleModel = new Schedule($conn);
 $tutorModel = new Tutor($conn);
-
-// Get tutor details
-$tutorData = $tutorModel->getByUserId($_SESSION['user_id']);
-$tutorId = $tutorData['id'];
 
 // Process form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -107,7 +107,7 @@ foreach ($schedules as $schedule) {
 ksort($schedulesByDate);
 
 // Include header
-include_once 'views/header.php';
+include_once ROOT_PATH . 'views/header.php';
 ?>
 
 <div class="container py-4">
@@ -535,5 +535,5 @@ include_once 'views/header.php';
 
 <?php
 // Include footer
-include_once 'views/footer.php';
+include_once ROOT_PATH . 'views/footer.php';
 ?>

@@ -1,6 +1,10 @@
 <?php
-require_once 'config.php';
-require_once 'functions.php';
+if (!defined('ROOT_PATH')) {
+    define('ROOT_PATH', dirname(__DIR__) . '/');
+}
+
+require_once ROOT_PATH . 'configs/config.php';
+require_once ROOT_PATH . 'configs/functions.php';
 
 /**
  * Register a new user
@@ -148,12 +152,12 @@ function logoutUser() {
 function requireLogin($role = null) {
     if (!isLoggedIn()) {
         setMessage('You must be logged in to access this page', 'error');
-        redirect('login.php');
+        redirect('main_pages/login.php');
     }
     
     if ($role !== null && !hasRole($role)) {
         setMessage('You do not have permission to access this page', 'error');
-        redirect('dashboard.php');
+        redirect('main_pages/dashboard.php');
     }
 }
 ?>

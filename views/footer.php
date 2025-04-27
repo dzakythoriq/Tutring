@@ -12,8 +12,8 @@
                     <h5>Quick Links</h5>
                     <ul class="list-unstyled">
                         <li><a href="<?php echo BASE_URL; ?>/index.php" class="text-white">Home</a></li>
-                        <li><a href="<?php echo BASE_URL; ?>/search.php" class="text-white">Find Tutors</a></li>
-                        <li><a href="<?php echo BASE_URL; ?>/register.php" class="text-white">Become a Tutor</a></li>
+                        <li><a href="<?php echo BASE_URL; ?>/main_pages/search.php" class="text-white">Find Tutors</a></li>
+                        <li><a href="<?php echo BASE_URL; ?>/main_pages/register.php" class="text-white">Become a Tutor</a></li>
                     </ul>
                 </div>
                 <div class="col-md-3">
@@ -34,6 +34,4 @@
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Custom JS -->
-    <script src="<?php echo BASE_URL; ?>/assets/js/script.js"></script>
-</body>
-</html>
+    <script src="<?php echo BASE_URL; ?>/js/script.js

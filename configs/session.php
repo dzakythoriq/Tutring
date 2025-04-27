@@ -1,4 +1,10 @@
 <?php
+if (!defined('ROOT_PATH')) {
+    define('ROOT_PATH', dirname(__DIR__) . '/');
+}
+
+require_once ROOT_PATH . 'configs/config.php';
+
 // Start the session if not already started
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
@@ -14,7 +20,7 @@ if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > 
     session_destroy();
     
     // Redirect to login page with timeout message
-    header("Location: " . BASE_URL . "/login.php?timeout=1");
+    header("Location: " . BASE_URL . "/main_pages/login.php?timeout=1");
     exit;
 }
 

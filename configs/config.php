@@ -1,4 +1,9 @@
 <?php
+// Define root path if not already defined
+if (!defined('ROOT_PATH')) {
+    define('ROOT_PATH', dirname(__DIR__) . '/');
+}
+
 // Database configuration
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
@@ -28,4 +33,4 @@ if ($conn->connect_error) {
 
 // Set charset to utf8
 $conn->set_charset("utf8");
-?>
+?>  
