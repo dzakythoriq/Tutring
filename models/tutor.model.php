@@ -19,7 +19,7 @@ class Tutor {
      * @return array|false Tutor data if found, false otherwise
      */
     public function getById($id) {
-        $sql = "SELECT t.*, u.name, u.email, u.created_at 
+        $sql = "SELECT t.*, u.name, u.email, u.photo, u.created_at 
                 FROM tutors t
                 JOIN users u ON t.user_id = u.id
                 WHERE t.id = ?";
@@ -42,7 +42,7 @@ class Tutor {
      * @return array|false Tutor data if found, false otherwise
      */
     public function getByUserId($userId) {
-        $sql = "SELECT t.*, u.name, u.email, u.created_at 
+        $sql = "SELECT t.*, u.name, u.email, u.photo, u.created_at 
                 FROM tutors t
                 JOIN users u ON t.user_id = u.id
                 WHERE t.user_id = ?";
@@ -104,12 +104,75 @@ class Tutor {
     }
     
     /**
+     * Add education or experience details
+     * 
+     * @param int $tutorId Tutor ID
+     * @param array $data Education/experience data
+     * @return int|false New record ID if created, false otherwise
+     */
+    public function addEducation($tutorId, $data) {
+        $sql = "INSERT INTO tutor_education (tutor_id, degree, institution, year, description) 
+                VALUES (?, ?, ?, ?, ?)";
+        $stmt = $this->conn->prepare($sql);
+        
+        $stmt->bind_param("issis", 
+            $tutorId,
+            $data['degree'],
+            $data['institution'],
+            $data['year'],
+            $data['description']
+        );
+        
+        if ($stmt->execute()) {
+            return $stmt->insert_id;
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Get education/experience details for a tutor
+     * 
+     * @param int $tutorId Tutor ID
+     * @return array List of education/experience items
+     */
+    public function getEducation($tutorId) {
+        $sql = "SELECT * FROM tutor_education WHERE tutor_id = ? ORDER BY year DESC";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("i", $tutorId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        $items = [];
+        while ($row = $result->fetch_assoc()) {
+            $items[] = $row;
+        }
+        
+        return $items;
+    }
+    
+    /**
+     * Delete education/experience item
+     * 
+     * @param int $itemId Item ID
+     * @param int $tutorId Tutor ID (for security check)
+     * @return boolean True if deleted, false otherwise
+     */
+    public function deleteEducation($itemId, $tutorId) {
+        $sql = "DELETE FROM tutor_education WHERE id = ? AND tutor_id = ?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("ii", $itemId, $tutorId);
+        
+        return $stmt->execute();
+    }
+    
+    /**
      * Get all tutors
      * 
      * @return array List of tutors
      */
     public function getAll() {
-        $sql = "SELECT t.*, u.name, u.email, u.created_at 
+        $sql = "SELECT t.*, u.name, u.email, u.photo, u.created_at 
                 FROM tutors t
                 JOIN users u ON t.user_id = u.id
                 ORDER BY t.id DESC";
@@ -130,7 +193,7 @@ class Tutor {
      * @return array List of tutors matching the subject
      */
     public function searchBySubject($subject) {
-        $sql = "SELECT t.*, u.name, u.email, u.created_at 
+        $sql = "SELECT t.*, u.name, u.email, u.photo, u.created_at 
                 FROM tutors t
                 JOIN users u ON t.user_id = u.id
                 WHERE t.subject LIKE ?
@@ -187,4 +250,3 @@ class Tutor {
         return $row['total'];
     }
 }
-?>
