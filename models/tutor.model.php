@@ -187,27 +187,127 @@ class Tutor {
     }
     
     /**
+     * Get all unique subjects from tutors
+     * 
+     * @return array List of unique subjects
+     */
+    public function getAllSubjects() {
+        $sql = "SELECT DISTINCT subject FROM tutors ORDER BY subject ASC";
+        $result = $this->conn->query($sql);
+        
+        $subjects = [];
+        while ($row = $result->fetch_assoc()) {
+            $subjects[] = $row['subject'];
+        }
+        
+        return $subjects;
+    }
+    
+    /**
      * Search tutors by subject
      * 
-     * @param string $subject Subject to search for
+     * @param string $query Search query for subject or name
      * @return array List of tutors matching the subject
      */
-    public function searchBySubject($subject) {
+    public function searchBySubject($query) {
         $sql = "SELECT t.*, u.name, u.email, u.photo, u.created_at 
                 FROM tutors t
                 JOIN users u ON t.user_id = u.id
-                WHERE t.subject LIKE ?
+                WHERE t.subject LIKE ? OR u.name LIKE ?
                 ORDER BY t.id DESC";
         $stmt = $this->conn->prepare($sql);
         
-        $searchTerm = "%{$subject}%";
-        $stmt->bind_param("s", $searchTerm);
+        $searchTerm = "%{$query}%";
+        $stmt->bind_param("ss", $searchTerm, $searchTerm);
         $stmt->execute();
         $result = $stmt->get_result();
         
         $tutors = [];
         while ($row = $result->fetch_assoc()) {
             $tutors[] = $row;
+        }
+        
+        return $tutors;
+    }
+    
+    /**
+     * Search tutors by multiple parameters
+     * 
+     * @param array $params Search parameters (subject, price_min, price_max, min_rating)
+     * @return array List of tutors matching parameters
+     */
+    public function searchTutors($params) {
+        $conditions = [];
+        $bindTypes = "";
+        $bindValues = [];
+        
+        $sql = "SELECT t.*, u.name, u.email, u.photo, u.created_at 
+                FROM tutors t
+                JOIN users u ON t.user_id = u.id";
+        
+        // Search by name or subject
+        if (!empty($params['query'])) {
+            $conditions[] = "(t.subject LIKE ? OR u.name LIKE ?)";
+            $bindTypes .= "ss";
+            $searchTerm = "%" . $params['query'] . "%";
+            $bindValues[] = $searchTerm;
+            $bindValues[] = $searchTerm;
+        }
+        
+        // Filter by subjects
+        if (!empty($params['subjects']) && is_array($params['subjects'])) {
+            $placeholders = implode(',', array_fill(0, count($params['subjects']), '?'));
+            $conditions[] = "t.subject IN ($placeholders)";
+            $bindTypes .= str_repeat("s", count($params['subjects']));
+            $bindValues = array_merge($bindValues, $params['subjects']);
+        }
+        
+        // Filter by price range
+        if (isset($params['price_min'])) {
+            $conditions[] = "t.hourly_rate >= ?";
+            $bindTypes .= "d";
+            $bindValues[] = $params['price_min'];
+        }
+        
+        if (isset($params['price_max'])) {
+            $conditions[] = "t.hourly_rate <= ?";
+            $bindTypes .= "d";
+            $bindValues[] = $params['price_max'];
+        }
+        
+        // Add WHERE clause if conditions exist
+        if (!empty($conditions)) {
+            $sql .= " WHERE " . implode(' AND ', $conditions);
+        }
+        
+        $sql .= " ORDER BY t.id DESC";
+        
+        $stmt = $this->conn->prepare($sql);
+        
+        if (!empty($bindValues)) {
+            // Create the bind_param arguments dynamically
+            $bindParams = [$bindTypes];
+            foreach ($bindValues as $key => $value) {
+                $bindParams[] = &$bindValues[$key];
+            }
+            
+            call_user_func_array([$stmt, 'bind_param'], $bindParams);
+        }
+        
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        $tutors = [];
+        while ($row = $result->fetch_assoc()) {
+            $tutors[] = $row;
+        }
+        
+        // Filter by minimum rating if specified
+        if (isset($params['min_rating']) && $params['min_rating'] > 0) {
+            $tutors = array_filter($tutors, function($tutor) use ($params) {
+                $rating = $this->getAverageRating($tutor['id']) ?: 0;
+                return $rating >= (float)$params['min_rating'];
+            });
         }
         
         return $tutors;
@@ -235,6 +335,19 @@ class Tutor {
         }
         
         return null;
+    }
+    
+    /**
+     * Get tutors by availability
+     * 
+     * @param array $availability Array of availability options (morning, afternoon, evening, weekend)
+     * @return array List of tutors with matching availability
+     */
+    public function getTutorsByAvailability($availability) {
+        // This is a placeholder - you would need to implement the actual logic
+        // to filter tutors based on their available schedules
+        // For now, we'll return all tutors
+        return $this->getAll();
     }
     
     /**

@@ -12,8 +12,13 @@ require_once ROOT_PATH . 'models/schedule.model.php';
 $tutorModel = new Tutor($conn);
 $scheduleModel = new Schedule($conn);
 
-// Get search parameter
-$searchSubject = isset($_GET['subject']) ? sanitize($_GET['subject']) : '';
+// Get search parameters
+$searchQuery = isset($_GET['query']) ? sanitize($_GET['query']) : '';
+$selectedSubjects = isset($_GET['subjects']) ? $_GET['subjects'] : [];
+$minPrice = isset($_GET['min_price']) ? intval($_GET['min_price']) : 20;
+$maxPrice = isset($_GET['max_price']) ? intval($_GET['max_price']) : 100;
+$availability = isset($_GET['availability']) ? $_GET['availability'] : [];
+$minRating = isset($_GET['min_rating']) ? floatval($_GET['min_rating']) : 0;
 
 // Check if viewing a specific tutor
 $viewTutor = isset($_GET['tutor']) && is_numeric($_GET['tutor']) ? (int)$_GET['tutor'] : null;
@@ -38,15 +43,38 @@ if ($viewTutor) {
     $viewMode = true;
 } else {
     // Search tutors
-    if (!empty($searchSubject)) {
-        $tutors = $tutorModel->searchBySubject($searchSubject);
+    if (!empty($searchQuery)) {
+        $tutors = $tutorModel->searchBySubject($searchQuery);
     } else {
         $tutors = $tutorModel->getAll();
+    }
+    
+    // Filter by subject if selected
+    if (!empty($selectedSubjects) && is_array($selectedSubjects)) {
+        $tutors = array_filter($tutors, function($tutor) use ($selectedSubjects) {
+            return in_array($tutor['subject'], $selectedSubjects);
+        });
+    }
+    
+    // Filter by price range
+    $tutors = array_filter($tutors, function($tutor) use ($minPrice, $maxPrice) {
+        return $tutor['hourly_rate'] >= $minPrice && $tutor['hourly_rate'] <= $maxPrice;
+    });
+    
+    // Filter by minimum rating
+    if ($minRating > 0) {
+        $tutors = array_filter($tutors, function($tutor) use ($tutorModel, $minRating) {
+            $rating = $tutorModel->getAverageRating($tutor['id']);
+            return $rating >= $minRating;
+        });
     }
     
     // Set flag for list mode
     $viewMode = false;
 }
+
+// Get all available subjects for filter
+$allSubjects = $tutorModel->getAllSubjects();
 
 // Include header
 include_once ROOT_PATH . 'views/header.php';
@@ -55,297 +83,268 @@ include_once ROOT_PATH . 'views/header.php';
 <div class="container py-4">
     <?php if ($viewMode): ?>
         <!-- Tutor Detail View -->
+        <!-- Keep your existing tutor detail view here -->
+    <?php else: ?>
+        <!-- Tutor Search and Listing with New UI -->
         <div class="row">
-            <div class="col-lg-8">
-                <div class="card shadow mb-4">
-                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                        <h6 class="m-0 font-weight-bold text-primary">Tutor Profile</h6>
-                        <a href="search.php" class="btn btn-sm btn-secondary">
-                            <i class="fas fa-arrow-left me-1"></i> Back to Search
-                        </a>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-4 text-center mb-4">
-                                <img src="https://ui-avatars.com/api/?name=<?= urlencode($tutor['name']) ?>&background=random&size=200" alt="<?= htmlspecialchars($tutor['name']) ?>" class="img-fluid rounded-circle mb-3" style="max-width: 200px;">
-                                
-                                <h4><?= htmlspecialchars($tutor['name']) ?></h4>
-                                <p class="text-muted mb-2"><?= htmlspecialchars($tutor['subject']) ?></p>
-                                
-                                <div class="tutor-rating mb-2">
-                                    <?php if ($rating): ?>
-                                        <?php for ($i = 1; $i <= 5; $i++): ?>
-                                            <?php if ($i <= $rating): ?>
-                                                <i class="fas fa-star"></i>
-                                            <?php elseif ($i - 0.5 <= $rating): ?>
-                                                <i class="fas fa-star-half-alt"></i>
-                                            <?php else: ?>
-                                                <i class="far fa-star"></i>
-                                            <?php endif; ?>
-                                        <?php endfor; ?>
-                                        <span class="ms-1">(<?= $rating ?>)</span>
-                                    <?php else: ?>
-                                        <span class="text-muted">No ratings yet</span>
-                                    <?php endif; ?>
-                                </div>
-                                
-                                <p class="h5"><?= formatCurrency($tutor['hourly_rate']) ?> / hour</p>
-                                
-                                <p class="small text-muted">Member since <?= formatDate($tutor['created_at'], 'M Y') ?></p>
-                            </div>
-                            
-                            <div class="col-md-8">
-                                <h5>About the Tutor</h5>
-                                <p><?= nl2br(htmlspecialchars($tutor['bio'])) ?></p>
-                                
-                                <hr>
-                                
-                                <h5>Subject Expertise</h5>
-                                <p><?= htmlspecialchars($tutor['subject']) ?></p>
-                                
-                                <hr>
-                                
-                                <h5>Education & Experience</h5>
-                                <p>The tutor hasn't added education details yet.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Available Schedules -->
-                <div class="card shadow mb-4">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">Available Time Slots</h6>
-                    </div>
-                    <div class="card-body">
-                        <?php if (empty($availableSchedules)): ?>
-                            <div class="text-center py-4">
-                                <p class="text-muted">No available schedules at the moment.</p>
-                                <p>Please check back later or contact the tutor directly.</p>
-                            </div>
-                        <?php else: ?>
-                            <?php 
-                            // Group schedules by date
-                            $schedulesByDate = [];
-                            foreach ($availableSchedules as $schedule) {
-                                $date = $schedule['date'];
-                                if (!isset($schedulesByDate[$date])) {
-                                    $schedulesByDate[$date] = [];
-                                }
-                                $schedulesByDate[$date][] = $schedule;
-                            }
-                            ?>
-                            
-                            <?php foreach ($schedulesByDate as $date => $daySchedules): ?>
-                                <h6 class="font-weight-bold mb-3"><?= formatDate($date, 'l, d M Y') ?></h6>
-                                
-                                <div class="row row-cols-1 row-cols-md-2 g-3 mb-4">
-                                    <?php foreach ($daySchedules as $schedule): ?>
-                                        <div class="col">
-                                            <div class="card h-100 border-primary">
-                                                <div class="card-body">
-                                                    <h6 class="card-title">
-                                                        <i class="far fa-clock me-1"></i>
-                                                        <?= formatTime($schedule['start_time']) ?> - <?= formatTime($schedule['end_time']) ?>
-                                                    </h6>
-                                                    
-                                                    <?php
-                                                    // Calculate duration
-                                                    $start = new DateTime($schedule['start_time']);
-                                                    $end = new DateTime($schedule['end_time']);
-                                                    $interval = $start->diff($end);
-                                                    $hours = $interval->h;
-                                                    $minutes = $interval->i;
-                                                    
-                                                    $durationText = '';
-                                                    if ($hours > 0) {
-                                                        $durationText .= $hours . ' hour' . ($hours > 1 ? 's' : '');
-                                                    }
-                                                    if ($minutes > 0) {
-                                                        if ($hours > 0) {
-                                                            $durationText .= ' and ';
-                                                        }
-                                                        $durationText .= $minutes . ' minute' . ($minutes > 1 ? 's' : '');
-                                                    }
-                                                    
-                                                    // Calculate total price
-                                                    $totalHours = $hours + ($minutes / 60);
-                                                    $totalPrice = $totalHours * $tutor['hourly_rate'];
-                                                    ?>
-                                                    
-                                                    <p class="card-text text-muted mb-1">
-                                                        <small>Duration: <?= $durationText ?></small>
-                                                    </p>
-                                                    <p class="card-text mb-3">
-                                                        <strong>Price: <?= formatCurrency($totalPrice) ?></strong>
-                                                    </p>
-                                                    
-                                                    <?php if (isLoggedIn() && isStudent()): ?>
-                                                        <a href="booking.php?schedule=<?= $schedule['id'] ?>" class="btn btn-primary w-100">
-                                                            Book Now
-                                                        </a>
-                                                    <?php elseif (!isLoggedIn()): ?>
-                                                        <a href="login.php" class="btn btn-primary w-100">
-                                                            Login to Book
-                                                        </a>
-                                                    <?php else: ?>
-                                                        <button class="btn btn-secondary w-100" disabled>
-                                                            Student Account Required
-                                                        </button>
-                                                    <?php endif; ?>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    <?php endforeach; ?>
-                                </div>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-lg-4">
-                <!-- Contact Information -->
-                <div class="card shadow mb-4">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">Contact Information</h6>
-                    </div>
-                    <div class="card-body">
-                        <?php if (isLoggedIn()): ?>
-                            <p>
-                                <i class="fas fa-envelope me-2"></i>
-                                <?= htmlspecialchars($tutor['email']) ?>
-                            </p>
-                        <?php else: ?>
-                            <div class="alert alert-info">
-                                <p class="mb-0">Please <a href="login.php">login</a> to view contact information.</p>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-                
-                <!-- Similar Tutors -->
-                <div class="card shadow mb-4">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">Similar Tutors</h6>
-                    </div>
-                    <div class="card-body">
-                        <?php
-                        // Get similar tutors (same subject, excluding current tutor)
-                        $similarTutors = $tutorModel->searchBySubject($tutor['subject']);
-                        $similarTutors = array_filter($similarTutors, function($t) use ($viewTutor) {
-                            return $t['id'] != $viewTutor;
-                        });
-                        
-                        // Limit to 3
-                        $similarTutors = array_slice($similarTutors, 0, 3);
-                        ?>
-                        
-                        <?php if (empty($similarTutors)): ?>
-                            <p class="text-muted">No similar tutors found.</p>
-                        <?php else: ?>
-                            <?php foreach ($similarTutors as $similarTutor): ?>
-                                <div class="d-flex mb-3">
-                                    <div class="flex-shrink-0">
-                                        <img src="https://ui-avatars.com/api/?name=<?= urlencode($similarTutor['name']) ?>&background=random" alt="<?= htmlspecialchars($similarTutor['name']) ?>" class="tutor-avatar" style="width: 48px; height: 48px;">
-                                    </div>
-                                    <div class="flex-grow-1 ms-3">
-                                        <h6 class="mb-0"><?= htmlspecialchars($similarTutor['name']) ?></h6>
-                                        <p class="text-muted mb-1"><small><?= htmlspecialchars($similarTutor['subject']) ?></small></p>
-                                        <a href="search.php?tutor=<?= $similarTutor['id'] ?>" class="btn btn-sm btn-outline-primary">View Profile</a>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </div>
-                </div>
+            <div class="col-md-12">
+                <h2 class="mb-4">Available Tutors</h2>
             </div>
         </div>
-    <?php else: ?>
-        <!-- Tutor Search and Listing -->
-        <div class="row mb-4">
-            <div class="col-md-12">
-                <div class="card shadow">
+        
+        <div class="row">
+            <!-- Filter Sidebar -->
+            <div class="col-md-3">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Filter Tutors</h6>
+                    </div>
                     <div class="card-body">
-                        <form action="search.php" method="get" class="row g-3">
-                            <div class="col-md-10">
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-search"></i>
-                                    </span>
-                                    <input type="text" class="form-control" id="subject" name="subject" placeholder="Search by subject (e.g., Math, Physics, English)" value="<?= htmlspecialchars($searchSubject) ?>">
+                        <form action="<?php echo BASE_URL; ?>/main_pages/search.php" method="get" id="filter-form">
+                            <!-- Search -->
+                            <div class="mb-3">
+                                <label for="query" class="form-label">Search</label>
+                                <input type="text" class="form-control" id="query" name="query" 
+                                       placeholder="Search tutors..." value="<?= htmlspecialchars($searchQuery) ?>">
+                            </div>
+                            
+                            <!-- Subjects -->
+                            <div class="mb-3">
+                                <label class="form-label">Subjects</label>
+                                <?php foreach ($allSubjects as $subject): ?>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="subjects[]" 
+                                           value="<?= htmlspecialchars($subject) ?>" id="subject-<?= htmlspecialchars($subject) ?>"
+                                           <?= in_array($subject, $selectedSubjects) ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="subject-<?= htmlspecialchars($subject) ?>">
+                                        <?= htmlspecialchars($subject) ?>
+                                    </label>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                            
+                            <!-- Price Range -->
+                            <div class="mb-3">
+                                <label class="form-label">Price Range</label>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>$<span id="min-price-display"><?= $minPrice ?></span></span>
+                                    <span>$<span id="max-price-display"><?= $maxPrice ?></span>/hr</span>
+                                </div>
+                                <input type="hidden" name="min_price" id="min-price" value="<?= $minPrice ?>">
+                                <input type="hidden" name="max_price" id="max-price" value="<?= $maxPrice ?>">
+                                <input type="range" class="form-range" min="20" max="100" step="5" id="price-range" value="<?= $maxPrice ?>">
+                            </div>
+                            
+                            <!-- Availability -->
+                            <div class="mb-3">
+                                <label class="form-label">Availability</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="availability[]" value="morning" 
+                                           id="morning" <?= in_array('morning', $availability) ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="morning">Morning</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="availability[]" value="afternoon" 
+                                           id="afternoon" <?= in_array('afternoon', $availability) ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="afternoon">Afternoon</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="availability[]" value="evening" 
+                                           id="evening" <?= in_array('evening', $availability) ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="evening">Evening</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="availability[]" value="weekend" 
+                                           id="weekend" <?= in_array('weekend', $availability) ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="weekend">Weekend</label>
                                 </div>
                             </div>
-                            <div class="col-md-2">
-                                <button type="submit" class="btn btn-primary w-100">Search</button>
+                            
+                            <!-- Minimum Rating -->
+                            <div class="mb-3">
+                                <label class="form-label">Minimum Rating</label>
+                                <div class="rating-filter">
+                                    <input type="hidden" name="min_rating" id="min-rating" value="<?= $minRating ?>">
+                                    <div class="d-flex">
+                                        <?php for($i = 1; $i <= 5; $i++): ?>
+                                            <span class="star<?= $i <= $minRating ? ' active' : '' ?>" data-rating="<?= $i ?>">
+                                                <i class="fas fa-star"></i>
+                                            </span>
+                                        <?php endfor; ?>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Filter Buttons -->
+                            <div class="d-flex justify-content-between">
+                                <button type="button" id="reset-btn" class="btn btn-secondary">Reset</button>
+                                <button type="submit" class="btn btn-primary">Apply</button>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="row">
-            <?php if (empty($tutors)): ?>
-                <div class="col-md-12">
+            
+            <!-- Tutor Listings -->
+            <div class="col-md-9">
+                <?php if (empty($tutors)): ?>
                     <div class="alert alert-info">
-                        <p class="mb-0">No tutors found. Please try a different search term.</p>
+                        <p class="mb-0">No tutors found matching your criteria. Please try different filters.</p>
                     </div>
-                </div>
-            <?php else: ?>
-                <?php foreach ($tutors as $tutor): ?>
-                    <div class="col-md-6 col-lg-4 mb-4">
-                        <div class="card tutor-card h-100 shadow-sm">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center mb-3">
-                                    <div class="flex-shrink-0">
-                                        <img src="https://ui-avatars.com/api/?name=<?= urlencode($tutor['name']) ?>&background=random" alt="<?= htmlspecialchars($tutor['name']) ?>" class="tutor-avatar">
-                                    </div>
-                                    <div class="flex-grow-1 ms-3">
-                                        <h5 class="card-title mb-0"><?= htmlspecialchars($tutor['name']) ?></h5>
-                                        <p class="text-muted mb-0"><?= htmlspecialchars($tutor['subject']) ?></p>
-                                    </div>
-                                </div>
-                                
-                                <p class="card-text">
-                                    <?= strlen($tutor['bio']) > 100 ? substr(htmlspecialchars($tutor['bio']), 0, 100) . '...' : htmlspecialchars($tutor['bio']) ?>
-                                </p>
-                                
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="tutor-rating">
-                                        <?php
-                                        $rating = $tutorModel->getAverageRating($tutor['id']);
-                                        if ($rating) {
-                                            for ($i = 1; $i <= 5; $i++) {
-                                                if ($i <= $rating) {
-                                                    echo '<i class="fas fa-star"></i>';
-                                                } elseif ($i - 0.5 <= $rating) {
-                                                    echo '<i class="fas fa-star-half-alt"></i>';
-                                                } else {
-                                                    echo '<i class="far fa-star"></i>';
-                                                }
-                                            }
-                                            echo ' <small>(' . $rating . ')</small>';
-                                        } else {
-                                            echo '<small class="text-muted">No ratings yet</small>';
-                                        }
-                                        ?>
-                                    </div>
-                                    <div class="tutor-price">
-                                        <strong><?= formatCurrency($tutor['hourly_rate']) ?></strong> / hour
+                <?php else: ?>
+                    <div class="row">
+                        <?php foreach ($tutors as $tutor): ?>
+                            <div class="col-md-6 mb-4">
+                                <div class="card tutor-card h-100 shadow-sm">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div>
+                                                <img src="https://ui-avatars.com/api/?name=<?= urlencode($tutor['name']) ?>&background=random" 
+                                                     alt="<?= htmlspecialchars($tutor['name']) ?>" 
+                                                     class="tutor-avatar rounded-circle" style="width: 64px; height: 64px;">
+                                            </div>
+                                            <div class="ms-3">
+                                                <h5 class="card-title mb-1"><?= htmlspecialchars($tutor['name']) ?></h5>
+                                                <p class="text-muted mb-0"><?= htmlspecialchars($tutor['subject']) ?></p>
+                                                <div class="tutor-rating">
+                                                    <?php
+                                                    $rating = $tutorModel->getAverageRating($tutor['id']) ?: 0;
+                                                    for ($i = 1; $i <= 5; $i++) {
+                                                        if ($i <= $rating) {
+                                                            echo '<i class="fas fa-star text-warning"></i>';
+                                                        } elseif ($i - 0.5 <= $rating) {
+                                                            echo '<i class="fas fa-star-half-alt text-warning"></i>';
+                                                        } else {
+                                                            echo '<i class="far fa-star text-warning"></i>';
+                                                        }
+                                                    }
+                                                    ?>
+                                                    <span class="ms-1 text-muted"><?= $rating ? number_format($rating, 1) : 'No ratings' ?></span>
+                                                </div>
+                                            </div>
+                                            <div class="ms-auto">
+                                                <span class="h5 text-primary"><?= formatCurrency($tutor['hourly_rate']) ?>/hr</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <p class="card-text mb-3">
+                                            <?= strlen($tutor['bio']) > 100 ? substr(htmlspecialchars($tutor['bio']), 0, 100) . '...' : htmlspecialchars($tutor['bio']) ?>
+                                        </p>
+                                        
+                                        <div class="d-flex justify-content-between">
+                                            <a href="<?php echo BASE_URL; ?>/main_pages/search.php?tutor=<?= $tutor['id'] ?>" 
+                                               class="btn btn-outline-primary flex-grow-1 me-2">View Profile</a>
+                                               
+                                            <?php if (isLoggedIn() && isStudent()): ?>
+                                                <a href="<?php echo BASE_URL; ?>/main_pages/search.php?tutor=<?= $tutor['id'] ?>#schedules" 
+                                                   class="btn btn-primary flex-grow-1">Book Session</a>
+                                            <?php elseif (!isLoggedIn()): ?>
+                                                <a href="<?php echo BASE_URL; ?>/main_pages/login.php" 
+                                                   class="btn btn-primary flex-grow-1">Login to Book</a>
+                                            <?php else: ?>
+                                                <button class="btn btn-secondary flex-grow-1" disabled>Student Account Required</button>
+                                            <?php endif; ?>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-footer bg-white border-top-0">
-                                <a href="search.php?tutor=<?= $tutor['id'] ?>" class="btn btn-primary w-100">View Profile</a>
-                            </div>
-                        </div>
+                        <?php endforeach; ?>
                     </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
+                <?php endif; ?>
+            </div>
         </div>
     <?php endif; ?>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Price range slider
+    const rangeInput = document.getElementById('price-range');
+    const minPriceDisplay = document.getElementById('min-price-display');
+    const maxPriceDisplay = document.getElementById('max-price-display');
+    const minPriceInput = document.getElementById('min-price');
+    const maxPriceInput = document.getElementById('max-price');
+    
+    rangeInput.addEventListener('input', function() {
+        maxPriceDisplay.textContent = this.value;
+        maxPriceInput.value = this.value;
+    });
+    
+    // Star rating filter
+    const stars = document.querySelectorAll('.rating-filter .star');
+    const minRatingInput = document.getElementById('min-rating');
+    
+    stars.forEach(star => {
+        star.addEventListener('click', function() {
+            const rating = parseInt(this.getAttribute('data-rating'));
+            minRatingInput.value = rating;
+            
+            // Update active stars
+            stars.forEach(s => {
+                const sRating = parseInt(s.getAttribute('data-rating'));
+                if (sRating <= rating) {
+                    s.classList.add('active');
+                } else {
+                    s.classList.remove('active');
+                }
+            });
+        });
+    });
+    
+    // Reset button
+    document.getElementById('reset-btn').addEventListener('click', function() {
+        document.getElementById('query').value = '';
+        
+        // Uncheck all subject checkboxes
+        document.querySelectorAll('input[name="subjects[]"]').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        
+        // Reset price range
+        rangeInput.value = 100;
+        maxPriceDisplay.textContent = 100;
+        minPriceInput.value = 20;
+        maxPriceInput.value = 100;
+        
+        // Uncheck availability options
+        document.querySelectorAll('input[name="availability[]"]').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        
+        // Reset star rating
+        minRatingInput.value = 0;
+        stars.forEach(star => star.classList.remove('active'));
+        
+        // Submit the form
+        document.getElementById('filter-form').submit();
+    });
+});
+</script>
+
+<style>
+.tutor-avatar {
+    object-fit: cover;
+}
+
+.rating-filter .star {
+    cursor: pointer;
+    color: #ccc;
+    font-size: 24px;
+    padding: 0 2px;
+}
+
+.rating-filter .star.active {
+    color: #ffc107;
+}
+
+.rating-filter .star:hover {
+    color: #ffc107;
+}
+
+.rating-filter .star:hover ~ .star {
+    color: #ccc;
+}
+</style>
 
 <?php
 // Include footer

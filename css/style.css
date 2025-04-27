@@ -15,6 +15,7 @@ body {
 .navbar-brand {
     font-weight: bold;
     font-size: 1.5rem;
+    color: #4e73df !important;
 }
 
 .navbar-dark .navbar-nav .nav-link {
@@ -29,12 +30,14 @@ body {
 .card {
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     margin-bottom: 20px;
+    border: none;
 }
 
 .card:hover {
     transform: translateY(-5px);
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
 }
 
 .card-img-top {
@@ -47,15 +50,38 @@ body {
     margin-bottom: 0.5rem;
 }
 
+.card-header {
+    background-color: #fff;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    font-weight: 600;
+}
+
 /* Button Styles */
+.btn {
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
 .btn-primary {
     background-color: #4e73df;
     border-color: #4e73df;
 }
 
 .btn-primary:hover {
-    background-color: #2e59d9;
-    border-color: #2653d4;
+    background-color: #3a5fc8;
+    border-color: #3a5fc8;
+}
+
+.btn-outline-primary {
+    color: #4e73df;
+    border-color: #4e73df;
+}
+
+.btn-outline-primary:hover {
+    background-color: #f0f4ff;
+    color: #4e73df;
 }
 
 .btn-success {
@@ -69,6 +95,12 @@ body {
 }
 
 /* Form Styles */
+.form-control {
+    border-radius: 6px;
+    border: 1px solid #dce0e5;
+    padding: 0.6rem 1rem;
+}
+
 .form-control:focus {
     border-color: #4e73df;
     box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
@@ -76,39 +108,28 @@ body {
 
 .form-label {
     font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #495057;
 }
 
-/* Hero Section */
-.hero {
-    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
-    color: white;
-    padding: 80px 0;
-    margin-bottom: 30px;
-    border-radius: 15px;
-}
-
-.hero h1 {
-    font-weight: 700;
-    margin-bottom: 20px;
-}
-
-/* Feature Icons */
-.feature-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 60px;
-    height: 60px;
-    margin-bottom: 1rem;
-    font-size: 1.5rem;
-    color: #fff;
-    border-radius: 50%;
+.form-check-input:checked {
     background-color: #4e73df;
+    border-color: #4e73df;
+}
+
+.form-range::-webkit-slider-thumb {
+    background: #4e73df;
+}
+
+.form-range::-moz-range-thumb {
+    background: #4e73df;
 }
 
 /* Tutor Cards */
 .tutor-card {
     height: 100%;
+    background-color: #fff;
+    overflow: hidden;
 }
 
 .tutor-avatar {
@@ -116,22 +137,82 @@ body {
     height: 64px;
     border-radius: 50%;
     object-fit: cover;
+    border: 3px solid #f8f9fa;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .tutor-rating {
     color: #ffc107;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
 }
 
-/* Schedule Card */
-.schedule-card {
-    border-left: 4px solid #4e73df;
+.tutor-price {
+    font-weight: 700;
+    color: #4e73df;
 }
 
-.schedule-card.booked {
-    border-left-color: #1cc88a;
+/* Filter Sidebar */
+.filter-card {
+    position: sticky;
+    top: 20px;
+}
+
+.rating-filter .star {
+    cursor: pointer;
+    color: #ccc;
+    font-size: 24px;
+    padding: 0 2px;
+    transition: color 0.2s ease;
+}
+
+.rating-filter .star.active {
+    color: #ffc107;
+}
+
+.rating-filter .star:hover {
+    color: #ffc107;
+}
+
+/* New Styles for Search Page */
+.search-container {
+    display: flex;
+    gap: 30px;
+}
+
+.filter-section {
+    width: 25%;
+    flex-shrink: 0;
+}
+
+.tutors-section {
+    flex-grow: 1;
+}
+
+.price-range-display {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    color: #6c757d;
+}
+
+.availability-option {
+    margin-bottom: 10px;
+}
+
+.filter-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
 }
 
 /* Status Badges */
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+    border-radius: 4px;
+}
+
 .badge-pending {
     background-color: #f6c23e;
 }
@@ -144,37 +225,24 @@ body {
     background-color: #e74a3b;
 }
 
-/* Login/Register Forms */
-.auth-card {
-    max-width: 450px;
-    margin: 2rem auto;
-}
-
-/* Dashboard Stats */
-.stat-card {
-    border-left: 4px solid;
-    border-radius: 6px;
-}
-
-.stat-card-primary {
-    border-left-color: #4e73df;
-}
-
-.stat-card-success {
-    border-left-color: #1cc88a;
-}
-
-.stat-card-info {
-    border-left-color: #36b9cc;
-}
-
-.stat-card-warning {
-    border-left-color: #f6c23e;
-}
-
 /* Responsive Adjustments */
+@media (max-width: 992px) {
+    .search-container {
+        flex-direction: column;
+    }
+    
+    .filter-section {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    
+    .tutors-section {
+        width: 100%;
+    }
+}
+
 @media (max-width: 768px) {
-    .hero {
-        padding: 40px 0;
+    .tutor-card {
+        margin-bottom: 20px;
     }
 }
