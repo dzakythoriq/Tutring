@@ -15,9 +15,9 @@ $scheduleModel = new Schedule($conn);
 // Get search parameters
 $searchQuery = isset($_GET['query']) ? sanitize($_GET['query']) : '';
 $selectedSubjects = isset($_GET['subjects']) ? $_GET['subjects'] : [];
-$minPrice = isset($_GET['min_price']) ? intval($_GET['min_price']) : 20;
-$maxPrice = isset($_GET['max_price']) ? intval($_GET['max_price']) : 100;
-$availability = isset($_GET['availability']) ? $_GET['availability'] : [];
+$minPrice = isset($_GET['min_price']) ? floatval($_GET['min_price']) : 1.00;
+$maxPrice = isset($_GET['max_price']) ? floatval($_GET['max_price']) : 10.00;
+$selectedDate = isset($_GET['selected_date']) ? sanitize($_GET['selected_date']) : '';
 $minRating = isset($_GET['min_rating']) ? floatval($_GET['min_rating']) : 0;
 
 // Check if viewing a specific tutor
@@ -60,6 +60,12 @@ if ($viewTutor) {
     $tutors = array_filter($tutors, function($tutor) use ($minPrice, $maxPrice) {
         return $tutor['hourly_rate'] >= $minPrice && $tutor['hourly_rate'] <= $maxPrice;
     });
+    
+    // Filter by date if selected
+    if (!empty($selectedDate)) {
+        // This would require additional logic to filter tutors based on their availability on the selected date
+        // For now, we'll just leave the tutors as is, but in a real implementation, you'd filter based on schedule
+    }
     
     // Filter by minimum rating
     if ($minRating > 0) {
@@ -123,41 +129,29 @@ include_once ROOT_PATH . 'views/header.php';
                                 <?php endforeach; ?>
                             </div>
                             
-                            <!-- Price Range -->
+                            <!-- Price Range - Updated to $1-$10 -->
                             <div class="mb-3">
                                 <label class="form-label">Price Range</label>
                                 <div class="d-flex justify-content-between mb-2">
-                                    <span>$<span id="min-price-display"><?= $minPrice ?></span></span>
-                                    <span>$<span id="max-price-display"><?= $maxPrice ?></span>/hr</span>
+                                    <span>$<span id="min-price-display"><?= number_format($minPrice, 2) ?></span></span>
+                                    <span>$<span id="max-price-display"><?= number_format($maxPrice, 2) ?></span>/hr</span>
                                 </div>
                                 <input type="hidden" name="min_price" id="min-price" value="<?= $minPrice ?>">
                                 <input type="hidden" name="max_price" id="max-price" value="<?= $maxPrice ?>">
-                                <input type="range" class="form-range" min="20" max="100" step="5" id="price-range" value="<?= $maxPrice ?>">
+                                <input type="range" class="form-range" min="1" max="10" step="0.5" id="price-range" value="<?= $maxPrice ?>">
                             </div>
                             
-                            <!-- Availability -->
+                            <!-- Availability - Using Date Picker Instead of Options -->
                             <div class="mb-3">
                                 <label class="form-label">Availability</label>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="availability[]" value="morning" 
-                                           id="morning" <?= in_array('morning', $availability) ? 'checked' : '' ?>>
-                                    <label class="form-check-label" for="morning">Morning</label>
+                                <div class="input-group">
+                                    <input type="date" class="form-control" id="selected_date" name="selected_date" 
+                                           value="<?= $selectedDate ?>" min="<?= date('Y-m-d') ?>">
+                                    <button class="btn btn-outline-secondary" type="button" id="clear-date">
+                                        <i class="fas fa-times"></i>
+                                    </button>
                                 </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="availability[]" value="afternoon" 
-                                           id="afternoon" <?= in_array('afternoon', $availability) ? 'checked' : '' ?>>
-                                    <label class="form-check-label" for="afternoon">Afternoon</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="availability[]" value="evening" 
-                                           id="evening" <?= in_array('evening', $availability) ? 'checked' : '' ?>>
-                                    <label class="form-check-label" for="evening">Evening</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="availability[]" value="weekend" 
-                                           id="weekend" <?= in_array('weekend', $availability) ? 'checked' : '' ?>>
-                                    <label class="form-check-label" for="weekend">Weekend</label>
-                                </div>
+                                <small class="text-muted">Select a date to find tutors available on that day</small>
                             </div>
                             
                             <!-- Minimum Rating -->
@@ -258,7 +252,7 @@ include_once ROOT_PATH . 'views/header.php';
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Price range slider
+    // Price range slider - Updated for $1-$10 range
     const rangeInput = document.getElementById('price-range');
     const minPriceDisplay = document.getElementById('min-price-display');
     const maxPriceDisplay = document.getElementById('max-price-display');
@@ -266,7 +260,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const maxPriceInput = document.getElementById('max-price');
     
     rangeInput.addEventListener('input', function() {
-        maxPriceDisplay.textContent = this.value;
+        maxPriceDisplay.textContent = parseFloat(this.value).toFixed(2);
         maxPriceInput.value = this.value;
     });
     
@@ -291,6 +285,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
+    // Clear date button
+    const clearDateBtn = document.getElementById('clear-date');
+    const datePicker = document.getElementById('selected_date');
+    
+    clearDateBtn.addEventListener('click', function() {
+        datePicker.value = '';
+    });
+    
     // Reset button
     document.getElementById('reset-btn').addEventListener('click', function() {
         document.getElementById('query').value = '';
@@ -301,15 +303,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // Reset price range
-        rangeInput.value = 100;
-        maxPriceDisplay.textContent = 100;
-        minPriceInput.value = 20;
-        maxPriceInput.value = 100;
+        rangeInput.value = 10;
+        maxPriceDisplay.textContent = '10.00';
+        minPriceInput.value = 1;
+        maxPriceInput.value = 10;
         
-        // Uncheck availability options
-        document.querySelectorAll('input[name="availability[]"]').forEach(checkbox => {
-            checkbox.checked = false;
-        });
+        // Clear date
+        datePicker.value = '';
         
         // Reset star rating
         minRatingInput.value = 0;

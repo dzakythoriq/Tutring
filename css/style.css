@@ -1,10 +1,11 @@
-/* Custom styles for Tutring */
+/* Custom styles for Tutring - Improved UI/UX */
 
 /* General Styles */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: #333;
     background-color: #f8f9fa;
+    line-height: 1.6;
 }
 
 .container {
@@ -26,42 +27,108 @@ body {
     color: #fff;
 }
 
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    color: white;
+    padding-top: 80px;
+    padding-bottom: 80px;
+    margin-top: -24px; /* Remove the gap after navbar */
+}
+
+.hero-section h1 {
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+}
+
+.hero-section .btn {
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+}
+
+/* Section Titles */
+.section-title {
+    position: relative;
+    padding-bottom: 15px;
+    font-weight: 600;
+    margin-bottom: 2rem;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    width: 70px;
+    height: 3px;
+    background-color: #4e73df;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
 /* Card Styles */
 .card {
     border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     border: none;
+    margin-bottom: 20px;
+    overflow: hidden;
 }
 
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+.transition-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
 }
 
-.card-img-top {
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
+.transition-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1) !important;
 }
 
 .card-title {
     font-weight: 600;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
 }
 
 .card-header {
     background-color: #fff;
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
     font-weight: 600;
+    padding: 1rem 1.5rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.card-footer {
+    background-color: #fff;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    padding: 1rem 1.5rem;
+}
+
+/* How It Works Section */
+.icon-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin-bottom: 15px;
 }
 
 /* Button Styles */
 .btn {
     border-radius: 6px;
-    padding: 0.5rem 1rem;
+    padding: 0.6rem 1.2rem;
     font-weight: 500;
     transition: all 0.2s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.btn-lg {
+    padding: 0.75rem 1.5rem;
 }
 
 .btn-primary {
@@ -77,11 +144,13 @@ body {
 .btn-outline-primary {
     color: #4e73df;
     border-color: #4e73df;
+    border-width: 2px;
 }
 
 .btn-outline-primary:hover {
-    background-color: #f0f4ff;
-    color: #4e73df;
+    background-color: #4e73df;
+    border-color: #4e73df;
+    color: white;
 }
 
 .btn-success {
@@ -133,12 +202,12 @@ body {
 }
 
 .tutor-avatar {
-    width: 64px;
-    height: 64px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
     object-fit: cover;
     border: 3px solid #f8f9fa;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .tutor-rating {
@@ -150,6 +219,22 @@ body {
 .tutor-price {
     font-weight: 700;
     color: #4e73df;
+}
+
+/* Testimonial Cards */
+.testimonial-card {
+    border-radius: 12px;
+    height: 100%;
+}
+
+.testimonial-quote {
+    height: 40px;
+}
+
+.testimonial-image {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
 }
 
 /* Filter Sidebar */
@@ -174,7 +259,7 @@ body {
     color: #ffc107;
 }
 
-/* New Styles for Search Page */
+/* Search Page Styles */
 .search-container {
     display: flex;
     gap: 30px;
@@ -225,8 +310,36 @@ body {
     background-color: #e74a3b;
 }
 
+/* Footer Styles */
+footer {
+    margin-top: 2rem;
+    padding: 3rem 0;
+}
+
+footer a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+}
+
+footer a:hover {
+    color: #fff;
+    text-decoration: underline;
+}
+
+/* Authentication Pages */
+.auth-card {
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
 /* Responsive Adjustments */
 @media (max-width: 992px) {
+    .hero-section {
+        padding: 50px 0;
+        text-align: center;
+    }
+    
     .search-container {
         flex-direction: column;
     }
@@ -239,10 +352,22 @@ body {
     .tutors-section {
         width: 100%;
     }
+
+    .d-flex.flex-wrap.gap-2 {
+        justify-content: center;
+    }
 }
 
 @media (max-width: 768px) {
+    .hero-section h1 {
+        font-size: 2rem;
+    }
+    
     .tutor-card {
         margin-bottom: 20px;
+    }
+    
+    .section-title {
+        font-size: 1.8rem;
     }
 }
