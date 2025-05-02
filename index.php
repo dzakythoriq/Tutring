@@ -26,11 +26,11 @@ include_once ROOT_PATH . 'views/header.php';
                 <p class="lead mb-4">Connect with qualified tutors, book sessions at your convenience, and excel in your studies</p>
                 <div class="d-flex flex-wrap gap-2">
                     <a href="<?php echo BASE_URL; ?>/main_pages/search.php" class="btn btn-primary btn-lg">Find a Tutor</a>
-                    <a href="<?php echo BASE_URL; ?>/main_pages/register.php?role=tutor" class="btn btn-outline-primary btn-lg">Become a Tutor</a>
+                    <a href="<?php echo BASE_URL; ?>/main_pages/register.php?role=tutor" class="btn btn-primary btn-lg">Become a Tutor</a>
                 </div>
             </div>
             <div class="col-lg-6 d-none d-lg-block">
-                <img src="https://ui-avatars.com/api/?name=Tutring&background=random&size=256&color=fff" alt="Tutoring" class="img-fluid rounded-3 shadow-lg">
+                <img src="https://ui-avatars.com/api/?name=Tutring&background=random&size=256&color=fff" alt="Tutoring" class="img-fluid rounded-4 shadow-lg">
             </div>
         </div>
     </div>

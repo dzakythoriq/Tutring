@@ -152,6 +152,10 @@ function displayMessage() {
  * @return string The formatted date
  */
 function formatDate($date, $format = 'd M Y') {
+    // Fix: Add null check to prevent deprecated warning
+    if ($date === null) {
+        return 'N/A';
+    }
     return date($format, strtotime($date));
 }
 
@@ -163,6 +167,10 @@ function formatDate($date, $format = 'd M Y') {
  * @return string The formatted time
  */
 function formatTime($time, $format = 'H:i') {
+    // Fix: Add null check to prevent deprecated warning
+    if ($time === null) {
+        return 'N/A';
+    }
     return date($format, strtotime($time));
 }
 
