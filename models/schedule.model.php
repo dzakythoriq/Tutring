@@ -127,13 +127,16 @@ class Schedule {
      * @return array List of schedules
      */
     public function getByTutor($tutorId, $fromDate = null) {
-        $sql = "SELECT * FROM schedules WHERE tutor_id = ?";
+        $sql = "SELECT s.*, b.id as booking_id 
+                FROM schedules s 
+                LEFT JOIN bookings b ON s.id = b.schedule_id 
+                WHERE s.tutor_id = ?";
         
         if ($fromDate) {
-            $sql .= " AND date >= ?";
+            $sql .= " AND s.date >= ?";
         }
         
-        $sql .= " ORDER BY date ASC, start_time ASC";
+        $sql .= " ORDER BY s.date ASC, s.start_time ASC";
         
         $stmt = $this->conn->prepare($sql);
         
