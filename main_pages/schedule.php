@@ -407,11 +407,15 @@ include_once ROOT_PATH . 'views/header.php';
                                                                             </button>
                                                                         </form>
                                                                     </div>
-                                                                <?php elseif ($schedule['is_booked']): ?>
-                                                                    <a href="<?= BASE_URL ?>/main_pages/booking.php?id=<?= $schedule['booking_id'] ?>" class="btn btn-sm btn-success">
-                                                                        <i class="fas fa-eye"></i> View Booking
-                                                                    </a>
-                                                                <?php endif; ?>
+                                                                    <?php elseif ($schedule['is_booked']): ?>
+                                                                        <?php if (isset($schedule['booking_id'])): ?>
+                                                                            <a href="<?= BASE_URL ?>/main_pages/booking.php?id=<?= $schedule['booking_id'] ?>" class="btn btn-sm btn-success">
+                                                                                <i class="fas fa-eye"></i> View Booking
+                                                                            </a>
+                                                                        <?php else: ?>
+                                                                            <button class="btn btn-sm btn-secondary" disabled>Booking Info Unavailable</button>
+                                                                        <?php endif; ?>
+                                                                    <?php endif; ?>
                                                             </div>
                                                         </div>
                                                     </div>

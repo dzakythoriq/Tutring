@@ -1,12 +1,3 @@
-<?php
-if (!defined('ROOT_PATH')) {
-    define('ROOT_PATH', dirname(__DIR__) . '/');
-}
-
-require_once ROOT_PATH . 'configs/config.php';
-require_once ROOT_PATH . 'configs/functions.php';
-require_once ROOT_PATH . 'configs/session.php';
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>

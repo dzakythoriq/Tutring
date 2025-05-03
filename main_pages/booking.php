@@ -143,6 +143,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
+// Handle review update
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_review') {
+    $reviewId = (int)$_POST['review_id'];
+    $rating = (int)$_POST['rating'];
+    $comment = sanitize($_POST['comment']);
+    
+    // Validate inputs
+    if ($rating < 1 || $rating > 5) {
+        setMessage('Rating must be between 1 and 5', 'error');
+    } else {
+        $reviewData = [
+            'rating' => $rating,
+            'comment' => $comment
+        ];
+        
+        if ($bookingModel->updateReview($reviewId, $reviewData)) {
+            setMessage('Review updated successfully', 'success');
+            redirect('booking.php?id=' . $bookingId);
+        } else {
+            setMessage('Failed to update review or the review is no longer editable', 'error');
+        }
+    }
+}
+
 // Include header
 include_once ROOT_PATH . 'views/header.php';
 ?>
@@ -283,7 +307,7 @@ include_once ROOT_PATH . 'views/header.php';
                             </div>
                             
                             <?php if (isStudent() && !$review): ?>
-                                <div class="card mb-4">
+                                <div class="card mb-4" id="review">
                                     <div class="card-header py-3">
                                         <h6 class="m-0 font-weight-bold text-primary">Leave a Review</h6>
                                     </div>
@@ -329,9 +353,27 @@ include_once ROOT_PATH . 'views/header.php';
                             <?php endif; ?>
                             
                             <?php if ($review): ?>
-                                <div class="card mb-4">
-                                    <div class="card-header py-3">
+                                <div class="card mb-4" id="review">
+                                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
                                         <h6 class="m-0 font-weight-bold text-primary">Your Review</h6>
+                                        <?php 
+                                        // Check if review is still editable
+                                        $isEditable = $bookingModel->isReviewEditable($review['id']);
+                                        $hoursRemaining = $bookingModel->getReviewEditableTimeRemaining($review['id']);
+                                        
+                                        if ($isEditable): 
+                                        ?>
+                                            <div class="d-flex align-items-center">
+                                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editReviewModal">
+                                                    <i class="fas fa-edit"></i> Edit Review
+                                                </button>
+                                                <span class="badge bg-info ms-2">
+                                                    Editable for <?= $hoursRemaining ?> more hour<?= $hoursRemaining != 1 ? 's' : '' ?>
+                                                </span>
+                                            </div>
+                                        <?php else: ?>
+                                            <span class="badge bg-secondary">Review is permanent</span>
+                                        <?php endif; ?>
                                     </div>
                                     <div class="card-body">
                                         <div class="mb-2">
@@ -343,6 +385,10 @@ include_once ROOT_PATH . 'views/header.php';
                                                 <?php endif; ?>
                                             <?php endfor; ?>
                                             <span class="ms-1">(<?= $review['rating'] ?>/5)</span>
+                                            
+                                            <span class="text-muted ms-3">
+                                                Posted: <?= formatDate($review['created_at'], 'd M Y, H:i') ?>
+                                            </span>
                                         </div>
                                         
                                         <?php if (!empty($review['comment'])): ?>
@@ -352,6 +398,68 @@ include_once ROOT_PATH . 'views/header.php';
                                         <?php endif; ?>
                                     </div>
                                 </div>
+                                
+                                <!-- Edit Review Modal (only shown if review is editable) -->
+                                <?php if ($isEditable): ?>
+                                <div class="modal fade" id="editReviewModal" tabindex="-1" aria-labelledby="editReviewModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="editReviewModalLabel">Edit Your Review</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <form action="<?php echo BASE_URL; ?>/main_pages/booking.php?id=<?= $bookingId ?>" method="post">
+                                                <div class="modal-body">
+                                                    <input type="hidden" name="action" value="update_review">
+                                                    <input type="hidden" name="review_id" value="<?= $review['id'] ?>">
+                                                    
+                                                    <div class="alert alert-info">
+                                                        <i class="fas fa-info-circle me-2"></i>
+                                                        Your review will become permanent after 24 hours from the initial submission.
+                                                        <br>
+                                                        You have <?= $hoursRemaining ?> hour<?= $hoursRemaining != 1 ? 's' : '' ?> left to make edits.
+                                                    </div>
+                                                    
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Rating</label>
+                                                        <div class="rating-input">
+                                                            <div class="form-check form-check-inline">
+                                                                <input class="form-check-input" type="radio" name="rating" id="edit_rating1" value="1" <?= $review['rating'] == 1 ? 'checked' : '' ?> required>
+                                                                <label class="form-check-label" for="edit_rating1">1</label>
+                                                            </div>
+                                                            <div class="form-check form-check-inline">
+                                                                <input class="form-check-input" type="radio" name="rating" id="edit_rating2" value="2" <?= $review['rating'] == 2 ? 'checked' : '' ?>>
+                                                                <label class="form-check-label" for="edit_rating2">2</label>
+                                                            </div>
+                                                            <div class="form-check form-check-inline">
+                                                                <input class="form-check-input" type="radio" name="rating" id="edit_rating3" value="3" <?= $review['rating'] == 3 ? 'checked' : '' ?>>
+                                                                <label class="form-check-label" for="edit_rating3">3</label>
+                                                            </div>
+                                                            <div class="form-check form-check-inline">
+                                                                <input class="form-check-input" type="radio" name="rating" id="edit_rating4" value="4" <?= $review['rating'] == 4 ? 'checked' : '' ?>>
+                                                                <label class="form-check-label" for="edit_rating4">4</label>
+                                                            </div>
+                                                            <div class="form-check form-check-inline">
+                                                                <input class="form-check-input" type="radio" name="rating" id="edit_rating5" value="5" <?= $review['rating'] == 5 ? 'checked' : '' ?>>
+                                                                <label class="form-check-label" for="edit_rating5">5</label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="mb-3">
+                                                        <label for="edit_comment" class="form-label">Comments</label>
+                                                        <textarea class="form-control" id="edit_comment" name="comment" rows="4"><?= htmlspecialchars($review['comment']) ?></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-primary">Update Review</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <?php endif; ?>
                             <?php endif; ?>
                         <?php elseif ($booking['status'] === 'cancelled'): ?>
                             <div class="alert alert-danger">
@@ -448,6 +556,38 @@ include_once ROOT_PATH . 'views/header.php';
         </div>
     </div>
 </div>
+
+<style>
+/* Review styles */
+.review-card {
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.review-card:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.review-rating {
+    font-size: 1.2rem;
+}
+
+.review-editable-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.star-rating .fas.fa-star, 
+.star-rating .far.fa-star {
+    color: #ffc107;
+    cursor: pointer;
+}
+
+.star-rating .fas.fa-star:hover ~ .fas.fa-star {
+    color: #e9ecef;
+}
+</style>
 
 <?php
 // Include footer

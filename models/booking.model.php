@@ -269,6 +269,79 @@ class Booking {
     }
     
     /**
+     * Update an existing review if it's still within the editable timeframe (24 hours)
+     * 
+     * @param int $reviewId Review ID to update
+     * @param array $reviewData Updated review data (rating, comment)
+     * @return boolean True if updated, false otherwise
+     */
+    public function updateReview($reviewId, $reviewData) {
+        // Check if review exists and is still editable (within 24 hours)
+        $checkSql = "SELECT r.id, r.created_at FROM reviews r WHERE r.id = ? AND 
+                    TIMESTAMPDIFF(HOUR, r.created_at, NOW()) < 24";
+        $checkStmt = $this->conn->prepare($checkSql);
+        $checkStmt->bind_param("i", $reviewId);
+        $checkStmt->execute();
+        $result = $checkStmt->get_result();
+        
+        if ($result->num_rows === 0) {
+            return false;
+        }
+        
+        // Update the review
+        $sql = "UPDATE reviews SET rating = ?, comment = ? WHERE id = ?";
+        $stmt = $this->conn->prepare($sql);
+        
+        $stmt->bind_param("isi", 
+            $reviewData['rating'],
+            $reviewData['comment'],
+            $reviewId
+        );
+        
+        return $stmt->execute();
+    }
+    
+    /**
+     * Check if a review is still editable (within 24 hours of creation)
+     * 
+     * @param int $reviewId Review ID
+     * @return boolean True if editable, false otherwise
+     */
+    public function isReviewEditable($reviewId) {
+        $sql = "SELECT COUNT(*) as count FROM reviews WHERE id = ? AND 
+                TIMESTAMPDIFF(HOUR, created_at, NOW()) < 24";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("i", $reviewId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        
+        return $row['count'] > 0;
+    }
+    
+    /**
+     * Get the remaining time (in hours) before a review becomes permanent
+     * 
+     * @param int $reviewId Review ID
+     * @return int|false Hours remaining or false if not found/already permanent
+     */
+    public function getReviewEditableTimeRemaining($reviewId) {
+        $sql = "SELECT 24 - TIMESTAMPDIFF(HOUR, created_at, NOW()) as hours_remaining 
+                FROM reviews WHERE id = ?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("i", $reviewId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows === 1) {
+            $row = $result->fetch_assoc();
+            return max(0, $row['hours_remaining']);
+        }
+        
+        return false;
+    }
+    
+    /**
      * Count total bookings
      * 
      * @return int Total number of bookings

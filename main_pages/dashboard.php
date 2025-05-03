@@ -383,20 +383,60 @@ include_once ROOT_PATH . 'views/header.php';
                                                 <?php endif; ?>
                                             </td>
                                             <td>
-                                                <a href="<?php echo BASE_URL; ?>/main_pages/booking.php?id=<?= $booking['id'] ?>" class="btn btn-sm btn-info">
-                                                    <i class="fas fa-eye"></i> View
-                                                </a>
-                                                
-                                                <?php if (isTutor() && $booking['status'] === 'pending'): ?>
-                                                    <form action="<?php echo BASE_URL; ?>/main_pages/dashboard.php" method="post" class="d-inline">
-                                                        <input type="hidden" name="action" value="update_status">
-                                                        <input type="hidden" name="booking_id" value="<?= $booking['id'] ?>">
-                                                        <input type="hidden" name="status" value="confirmed">
-                                                        <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Are you sure you want to confirm this booking?')">
-                                                            <i class="fas fa-check"></i> Confirm
-                                                        </button>
-                                                    </form>
-                                                <?php endif; ?>
+                                                <div class="d-flex align-items-center">
+                                                    <a href="<?php echo BASE_URL; ?>/main_pages/booking.php?id=<?= $booking['id'] ?>" class="btn btn-sm btn-info me-2">
+                                                        <i class="fas fa-eye"></i> View
+                                                    </a>
+                                                    
+                                                    <?php if (isStudent() && $booking['status'] === 'confirmed'): ?>
+                                                        <?php 
+                                                        $hasReview = $bookingModel->hasReview($booking['id']);
+                                                        $review = $hasReview ? $bookingModel->getReview($booking['id']) : null;
+                                                        $isEditable = $review ? $bookingModel->isReviewEditable($review['id']) : false;
+                                                        ?>
+                                                        
+                                                        <?php if (!$hasReview): ?>
+                                                            <a href="<?php echo BASE_URL; ?>/main_pages/booking.php?id=<?= $booking['id'] ?>#review" class="btn btn-sm btn-warning">
+                                                                <i class="fas fa-star"></i> Leave Review
+                                                            </a>
+                                                        <?php elseif ($isEditable): ?>
+                                                            <div class="d-flex align-items-center">
+                                                                <a href="<?php echo BASE_URL; ?>/main_pages/booking.php?id=<?= $booking['id'] ?>#review" class="btn btn-sm btn-outline-warning">
+                                                                    <i class="fas fa-edit"></i> Edit Review
+                                                                </a>
+                                                                <span class="badge bg-info ms-2 review-status-badge">
+                                                                    <i class="fas fa-clock me-1"></i> Editable
+                                                                </span>
+                                                            </div>
+                                                        <?php else: ?>
+                                                            <div class="d-flex align-items-center">
+                                                                <span class="badge bg-success review-status-badge">
+                                                                    <i class="fas fa-check-circle me-1"></i> Reviewed
+                                                                </span>
+                                                                <?php if ($review): ?>
+                                                                    <div class="ms-2 stars-container">
+                                                                        <?php for ($i = 1; $i <= 5; $i++): ?>
+                                                                            <?php if ($i <= $review['rating']): ?>
+                                                                                <i class="fas fa-star"></i>
+                                                                            <?php else: ?>
+                                                                                <i class="far fa-star"></i>
+                                                                            <?php endif; ?>
+                                                                        <?php endfor; ?>
+                                                                    </div>
+                                                                <?php endif; ?>
+                                                            </div>
+                                                        <?php endif; ?>
+                                                    <?php elseif (isTutor() && $booking['status'] === 'pending'): ?>
+                                                        <form action="<?php echo BASE_URL; ?>/main_pages/dashboard.php" method="post" class="d-inline">
+                                                            <input type="hidden" name="action" value="update_status">
+                                                            <input type="hidden" name="booking_id" value="<?= $booking['id'] ?>">
+                                                            <input type="hidden" name="status" value="confirmed">
+                                                            <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Are you sure you want to confirm this booking?')">
+                                                                <i class="fas fa-check"></i> Confirm
+                                                            </button>
+                                                        </form>
+                                                    <?php endif; ?>
+                                                </div>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -506,28 +546,91 @@ include_once ROOT_PATH . 'views/header.php';
     </div>
 </div>
 
-<!-- Add some CSS for styling -->
+<!-- Add styles for review display -->
 <style>
-    /* Card border left utility classes */
-    .border-left-primary {
-        border-left: 0.25rem solid #4e73df !important;
-    }
-    
-    .border-left-success {
-        border-left: 0.25rem solid #1cc88a !important;
-    }
-    
-    .border-left-info {
-        border-left: 0.25rem solid #36b9cc !important;
-    }
-    
-    .border-left-warning {
-        border-left: 0.25rem solid #f6c23e !important;
-    }
-    
-    .border-left-danger {
-        border-left: 0.25rem solid #e74a3b !important;
-    }
+/* Card border left utility classes */
+.border-left-primary {
+    border-left: 0.25rem solid #4e73df !important;
+}
+
+.border-left-success {
+    border-left: 0.25rem solid #1cc88a !important;
+}
+
+.border-left-info {
+    border-left: 0.25rem solid #36b9cc !important;
+}
+
+.border-left-warning {
+    border-left: 0.25rem solid #f6c23e !important;
+}
+
+.border-left-danger {
+    border-left: 0.25rem solid #e74a3b !important;
+}
+
+/* Review styles */
+.review-card {
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.review-card:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.review-rating {
+    font-size: 1.2rem;
+}
+
+.review-editable-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.star-rating .fas.fa-star, 
+.star-rating .far.fa-star {
+    color: #ffc107;
+    cursor: pointer;
+}
+
+.rating-input .form-check-input:checked ~ label {
+    color: #ffc107;
+}
+
+.review-status-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Stars for reviews */
+.stars-container {
+    display: inline-block;
+}
+
+.stars-container i {
+    color: #ffc107;
+    margin-right: 2px;
+}
+
+.review-meta {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.review-timestamp {
+    margin-left: 10px;
+}
+
+/* Editable review styles */
+.review-editable {
+    border-left: 3px solid #17a2b8;
+}
+
+.review-permanent {
+    border-left: 3px solid #6c757d;
+}
 </style>
 
 <?php

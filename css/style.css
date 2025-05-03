@@ -371,3 +371,66 @@ footer a:hover {
         font-size: 1.8rem;
     }
 }
+
+/* Review styles */
+.review-card {
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.review-card:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.review-rating {
+    font-size: 1.2rem;
+}
+
+.review-editable-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.star-rating .fas.fa-star, 
+.star-rating .far.fa-star {
+    color: #ffc107;
+    cursor: pointer;
+}
+
+.rating-input .form-check-input:checked ~ label {
+    color: #ffc107;
+}
+
+.review-status-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Stars for reviews */
+.stars-container {
+    display: inline-block;
+}
+
+.stars-container i {
+    color: #ffc107;
+    margin-right: 2px;
+}
+
+.review-meta {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.review-timestamp {
+    margin-left: 10px;
+}
+
+/* Editable review styles */
+.review-editable {
+    border-left: 3px solid #17a2b8;
+}
+
+.review-permanent {
+    border-left: 3px solid #6c757d;
+}
