@@ -98,7 +98,7 @@ if ($bookingId) {
         
         if ($newBookingId) {
             setMessage('Booking created successfully! The tutor will review your request.', 'success');
-            redirect('booking.php?id=' . $newBookingId);
+            redirect(BASE_URL . '/main_pages/booking.php?id=' . $newBookingId);
         } else {
             setMessage('Failed to create booking', 'error');
         }
@@ -118,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     
     if ($bookingModel->updateStatus($bookingId, $newStatus)) {
         setMessage('Booking status updated successfully', 'success');
-        redirect('booking.php?id=' . $bookingId);
+        redirect(BASE_URL . '/main_pages/booking.php?id=' . $bookingId);
     } else {
         setMessage('Failed to update booking status', 'error');
     }
