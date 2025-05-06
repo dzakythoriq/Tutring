@@ -14,11 +14,13 @@ require_once ROOT_PATH . 'configs/auth.php';
 require_once ROOT_PATH . 'models/booking.model.php';
 require_once ROOT_PATH . 'models/schedule.model.php';
 require_once ROOT_PATH . 'models/tutor.model.php';
+require_once ROOT_PATH . 'models/payment.model.php';
 
 // Initialize models
 $bookingModel = new Booking($conn);
 $scheduleModel = new Schedule($conn);
 $tutorModel = new Tutor($conn);
+$paymentModel = new Payment($conn);
 
 // Check if viewing an existing booking or creating a new one
 $bookingId = isset($_GET['id']) && is_numeric($_GET['id']) ? (int)$_GET['id'] : null;
@@ -52,6 +54,10 @@ if ($bookingId) {
     
     // Get review if exists
     $review = $bookingModel->getReview($bookingId);
+    
+    // Get payment information
+    $payment = $paymentModel->getByBookingId($bookingId);
+    $isPaid = $payment && $payment['status'] === 'completed';
     
     // View mode
     $mode = 'view';
@@ -311,7 +317,61 @@ include_once ROOT_PATH . 'views/header.php';
                                 <p class="mb-0">This booking has been confirmed. Please attend the session at the scheduled time.</p>
                             </div>
                             
-                            <?php if (isStudent() && !$review): ?>
+                            <!-- Payment Status Section -->
+                            <div class="card mb-4">
+                                <div class="card-header bg-primary text-white">
+                                    <h6 class="mb-0">Payment Status</h6>
+                                </div>
+                                <div class="card-body">
+                                    <?php if ($isPaid): ?>
+                                        <div class="alert alert-success mb-0">
+                                            <div class="d-flex align-items-center">
+                                                <div class="me-3">
+                                                    <i class="fas fa-check-circle fa-2x"></i>
+                                                </div>
+                                                <div>
+                                                    <h5 class="alert-heading">Payment Completed</h5>
+                                                    <p class="mb-0">This session has been paid. Thank you!</p>
+                                                    <p class="mb-0 small">Payment Method: <?= ucfirst($payment['payment_method']) ?></p>
+                                                    <p class="mb-0 small">Paid on: <?= formatDate($payment['paid_at'], 'd M Y, H:i') ?></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <?php else: ?>
+                                        <div class="alert alert-warning mb-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="me-3">
+                                                    <i class="fas fa-exclamation-circle fa-2x"></i>
+                                                </div>
+                                                <div>
+                                                    <h5 class="alert-heading">Payment Required</h5>
+                                                    <p class="mb-0">Please complete the payment for this tutoring session.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <?php
+                                        // Calculate total price
+                                        $totalPrice = $paymentModel->calculateAmount($booking);
+                                        ?>
+                                        
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <p class="mb-0"><strong>Total Amount:</strong> <span class="h5 text-primary"><?= formatCurrency($totalPrice) ?></span></p>
+                                            </div>
+                                            <?php if (isStudent()): ?>
+                                                <a href="<?= BASE_URL ?>/main_pages/payment.php?booking_id=<?= $bookingId ?>" class="btn btn-primary">
+                                                    <i class="fas fa-credit-card me-1"></i> Pay Now
+                                                </a>
+                                            <?php else: ?>
+                                                <span class="badge bg-warning text-dark">Waiting for student payment</span>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            
+                            <?php if (isStudent() && !$review && $isPaid): ?>
                                 <div class="card mb-4" id="review">
                                     <div class="card-header py-3">
                                         <h6 class="m-0 font-weight-bold text-primary">Leave a Review</h6>
@@ -354,6 +414,10 @@ include_once ROOT_PATH . 'views/header.php';
                                             <button type="submit" class="btn btn-primary">Submit Review</button>
                                         </form>
                                     </div>
+                                </div>
+                            <?php elseif (isStudent() && !$isPaid): ?>
+                                <div class="alert alert-info">
+                                    <p class="mb-0">You can leave a review after completing the payment for this session.</p>
                                 </div>
                             <?php endif; ?>
                             

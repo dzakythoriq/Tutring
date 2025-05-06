@@ -55,6 +55,7 @@
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/main_pages/profile.php">Profile</a></li>
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/main_pages/dashboard.php">Dashboard</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/main_pages/payment_history.php">Payment History</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/main_pages/logout.php">Logout</a></li>
                             </ul>

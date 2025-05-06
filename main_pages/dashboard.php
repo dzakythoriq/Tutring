@@ -9,6 +9,7 @@ require_once ROOT_PATH . 'configs/auth.php';
 require_once ROOT_PATH . 'models/booking.model.php';
 require_once ROOT_PATH . 'models/tutor.model.php';
 require_once ROOT_PATH . 'models/schedule.model.php';
+require_once ROOT_PATH . 'models/payment.model.php';
 
 // Require login
 requireLogin();
@@ -17,6 +18,7 @@ requireLogin();
 $bookingModel = new Booking($conn);
 $tutorModel = new Tutor($conn);
 $scheduleModel = new Schedule($conn);
+$paymentModel = new Payment($conn);
 
 // Load the appropriate dashboard based on user role
 if (isTutor()) {
@@ -361,6 +363,7 @@ include_once ROOT_PATH . 'views/header.php';
                                         <?php endif; ?>
                                         <th>Status</th>
                                         <th>Actions</th>
+                                        <th>Payment</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -437,6 +440,28 @@ include_once ROOT_PATH . 'views/header.php';
                                                         </form>
                                                     <?php endif; ?>
                                                 </div>
+                                            </td>
+                                            <td>
+                                                <?php 
+                                                $isPaid = $paymentModel->isPaymentCompleted($booking['id']); 
+                                                if ($booking['status'] === 'confirmed') {
+                                                    if ($isPaid) {
+                                                        echo '<span class="badge bg-success"><i class="fas fa-check me-1"></i> Paid</span>';
+                                                    } else {
+                                                        if (isStudent()) {
+                                                            echo '<a href="' . BASE_URL . '/main_pages/payment.php?booking_id=' . $booking['id'] . '" class="btn btn-sm btn-warning">
+                                                                <i class="fas fa-credit-card me-1"></i> Pay Now
+                                                            </a>';
+                                                        } else {
+                                                            echo '<span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i> Unpaid</span>';
+                                                        }
+                                                    }
+                                                } else if ($booking['status'] === 'cancelled') {
+                                                    echo '<span class="badge bg-secondary">N/A</span>';
+                                                } else {
+                                                    echo '<span class="badge bg-light text-dark">Pending</span>';
+                                                }
+                                                ?>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
