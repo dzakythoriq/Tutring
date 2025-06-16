@@ -24,7 +24,7 @@ if (session_status() == PHP_SESSION_NONE) {
 }
 
 // Database connection
-$conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+$conn = new mysqli("localhost", "root", "", "tutring");
 
 // Check connection
 if ($conn->connect_error) {
